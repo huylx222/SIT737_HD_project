@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: us-central1-docker.pkg.dev/sunny-state-458304-e9/hd-project/test_project-web:v3
+        ports:
+        - containerPort: 3000
+        env:
+        - name: API_URL
+          value: http://api-service:5001
+        - name: MONGO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: MONGO_USERNAME
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: MONGO_PASSWORD
+        - name: MONGO_HOST
+          value: "mongodb-service"
+        - name: MONGO_PORT
+          value: "27017"
+        - name: MONGO_DB
+          value: "spoof_detection"
+        - name: MONGODB_URI
+          value: "mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb-service:27017/spoof_detection?authSource=admin"
+        volumeMounts:
+        - name: web-uploads
+          mountPath: /app/uploads
+      volumes:
+      - name: web-uploads
+        emptyDir: {}
+      imagePullSecrets:
+      - name: gcp-registry-creds

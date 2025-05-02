@@ -1,0 +1,149 @@
+{
+  "displayName": "Advanced GKE Application Dashboard",
+  "gridLayout": {
+    "columns": 2,
+    "widgets": [
+      {
+        "title": "Network Received Bytes",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_pod\" AND (resource.labels.pod_name=monitoring.regex.full_match(\"api-.*\") OR resource.labels.pod_name=monitoring.regex.full_match(\"web-.*\")) AND metric.type=\"kubernetes.io/pod/network/received_bytes_count\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_NONE",
+                    "groupByFields": [
+                      "resource.labels.pod_name"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Network Sent Bytes",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_pod\" AND (resource.labels.pod_name=monitoring.regex.full_match(\"api-.*\") OR resource.labels.pod_name=monitoring.regex.full_match(\"web-.*\")) AND metric.type=\"kubernetes.io/pod/network/sent_bytes_count\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_NONE",
+                    "groupByFields": [
+                      "resource.labels.pod_name"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Node CPU Usage",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_node\" AND metric.type=\"kubernetes.io/node/cpu/allocatable_utilization\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_NONE",
+                    "groupByFields": [
+                      "resource.labels.node_name"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Node Memory Utilization",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_node\" AND metric.type=\"kubernetes.io/node/memory/allocatable_utilization\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_NONE",
+                    "groupByFields": [
+                      "resource.labels.node_name"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Cluster CPU Usage (Average)",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_node\" AND metric.type=\"kubernetes.io/node/cpu/allocatable_utilization\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_MEAN"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Container Restarts",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "resource.type=\"k8s_container\" AND (resource.labels.container_name=\"api\" OR resource.labels.container_name=\"web\") AND metric.type=\"kubernetes.io/container/restart_count\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_DELTA",
+                    "crossSeriesReducer": "REDUCE_NONE",
+                    "groupByFields": [
+                      "resource.labels.container_name"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "title": "API Logs",
+        "logsPanel": {
+          "filter": "resource.type=\"k8s_container\" AND resource.labels.container_name=\"api\""
+        }
+      },
+      {
+        "title": "Error Logs",
+        "logsPanel": {
+          "filter": "resource.type=\"k8s_container\" AND (resource.labels.container_name=\"api\" OR resource.labels.container_name=\"web\") AND severity>=ERROR"
+        }
+      }
+    ]
+  }
+}

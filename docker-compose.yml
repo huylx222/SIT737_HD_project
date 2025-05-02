@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  api:
+    build: ./api_server
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./api_server:/app
+      - ./api_server/api_uploads:/app/api_uploads
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  web:
+    build: ./web-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web-app:/app
+      - ./web-app/uploads:/app/uploads
+    networks:
+      - app-network
+    depends_on:
+      - api
+    restart: unless-stopped
+    environment:
+      - API_URL=http://api:5001
+
+networks:
+  app-network:
+    driver: bridge

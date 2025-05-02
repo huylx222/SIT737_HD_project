@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  labels:
+    app: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: us-central1-docker.pkg.dev/sunny-state-458304-e9/hd-project/test_project-api:v2
+        ports:
+        - containerPort: 5001
+        volumeMounts:
+        - name: api-uploads
+          mountPath: /app/api_uploads
+      volumes:
+      - name: api-uploads
+        emptyDir: {}
+      imagePullSecrets:
+      - name: gcp-registry-creds

@@ -1,0 +1,11 @@
+flask
+flask-socketio
+flask-cors
+eventlet
+torch
+torchvision
+opencv-python
+numpy
+Pillow
+albumentations
+mediapipe

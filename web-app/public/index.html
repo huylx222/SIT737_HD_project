@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Detection App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .upload-container {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 500px;
+    }
+    #preview {
+      max-width: 100%;
+      margin-top: 20px;
+      display: none;
+    }
+    #result {
+      margin-top: 40px; /* Increased margin to move the result box down */
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      background-color: #f9f9f9;
+    }
+    .face-box {
+      position: absolute;
+      border: 2px solid red;
+      pointer-events: none;
+    }
+    #image-container {
+      position: relative;
+      display: inline-block;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .loading {
+      display: none;
+      margin-top: 15px;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    .result-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 30px;
+      width: 100%;
+    }
+    .image-section {
+      width: 60%;
+    }
+    .info-section {
+      width: 35%;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Face Detection App</h1>
+  
+  <div class="upload-container">
+    <h3>Upload an image with faces</h3>
+    <input type="file" id="imageInput" accept="image/*">
+    <button id="uploadBtn">Verify Faces</button>
+    <div class="loading" id="loading">Processing...</div>
+  </div>
+
+  <div class="result-section">
+    <div class="image-section">
+      <div id="image-container">
+        <img id="preview" alt="Image preview">
+        <!-- Face boxes will be added here -->
+      </div>
+    </div>
+
+    <div class="info-section" id="result">
+      <!-- The results will be displayed here -->
+    </div>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const resultDiv = document.getElementById('result');
+    const imageContainer = document.getElementById('image-container');
+    const loading = document.getElementById('loading');
+    
+    // Preview image
+    imageInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          resultDiv.style.display = 'none';
+          
+          // Remove existing face boxes
+          const boxes = document.querySelectorAll('.face-box');
+          boxes.forEach(box => box.remove());
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    // Upload and process image
+    uploadBtn.addEventListener('click', async function() {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert('Please select an image first');
+        return;
+      }
+      
+      loading.style.display = 'block';
+      resultDiv.style.display = 'none';
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        loading.style.display = 'none';
+        
+        if (data.error) {
+          resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+          resultDiv.style.display = 'block';
+          return;
+        }
+        
+        // Display results
+        resultDiv.innerHTML = `
+          <p><strong>Detected Faces:</strong> ${data.faces.length}</p>
+          <p><strong>Image Dimensions:</strong> ${data.image_width} x ${data.image_height}</p>
+          <p><strong>Spoof Detection Probability:</strong> ${data.spoof_results[0].spoof_prob.toFixed(2)}</p>
+          <p><strong>Confidence for First Face:</strong> ${data.faces[0].confidence.toFixed(2)}</p>
+        `;
+        resultDiv.style.display = 'block';
+        
+        // Remove existing face boxes
+        const boxes = document.querySelectorAll('.face-box');
+        boxes.forEach(box => box.remove());
+        
+        // Add face boxes
+        const img = document.getElementById('preview');
+        const imgWidth = img.clientWidth;
+        const imgHeight = img.clientHeight;
+        const originalWidth = img.naturalWidth;
+        const originalHeight = img.naturalHeight;
+        
+        data.faces.forEach(face => {
+          const box = document.createElement('div');
+          box.className = 'face-box';
+          
+          // Scale coordinates from original image to displayed size
+          const x = (face.bbox.xmin / originalWidth) * imgWidth;
+          const y = (face.bbox.ymin / originalHeight) * imgHeight;
+          const width = ((face.bbox.xmax - face.bbox.xmin) / originalWidth) * imgWidth;
+          const height = ((face.bbox.ymax - face.bbox.ymin) / originalHeight) * imgHeight;
+          
+          box.style.left = `${x}px`;
+          box.style.top = `${y}px`;
+          box.style.width = `${width}px`;
+          box.style.height = `${height}px`;
+          
+          imageContainer.appendChild(box);
+        });
+      } catch (error) {
+        loading.style.display = 'none';
+        resultDiv.innerHTML = `<p class="error">Error processing the image: ${error.message}</p>`;
+        resultDiv.style.display = 'block';
+        console.error('Error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
