@@ -182,6 +182,39 @@ app.get('/detection-history', async (req, res) => {
   }
 });
 
+// Add this route to your first application (spoof detection app)
+app.delete('/detections/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    
+    // Validate if the provided ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error(`Invalid detection ID format: ${id}`);
+      return res.status(400).json({ error: 'Invalid detection ID format' });
+    }
+    
+    // Find and delete the detection
+    const deletedDetection = await Detection.findByIdAndDelete(id);
+    
+    if (!deletedDetection) {
+      console.error(`Detection not found with ID: ${id}`);
+      return res.status(404).json({ error: 'Detection not found' });
+    }
+    
+    console.log(`Deleted detection with ID: ${id}`);
+    res.json({ 
+      message: 'Detection deleted successfully',
+      deletedDetection 
+    });
+  } catch (error) {
+    console.error('Error deleting detection:', error);
+    res.status(500).json({
+      error: 'Failed to delete detection',
+      details: error.message,
+    });
+  }
+});
+
 // MongoDB status endpoint with detailed information
 app.get('/mongodb-status', (req, res) => {
   const state = mongoose.connection.readyState;

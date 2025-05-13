@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: us-central1-docker.pkg.dev/sunny-state-458304-e9/hd-project/test_project-web:v3
+        image: us-central1-docker.pkg.dev/sunny-state-458304-e9/hd-project/test_project-web:v4
         ports:
         - containerPort: 3000
         env:
