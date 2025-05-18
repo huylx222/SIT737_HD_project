@@ -20,12 +20,17 @@
 9. Push the image to gcp and run Kubernetes
     
    docker tag web:newest {GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPOSITORY}/test_project-api:${IMAGE_TAG}
+
    docker tag api:newest ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPOSITORY}/test_project-web:${IMAGE_TAG}
    
    docker push ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPOSITORY}/test_project-api:${IMAGE_TAG}
+
    docker push ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPOSITORY}/test_project-web:${IMAGE_TAG}
 
    kubectl apply -f api-deployment.yaml
+   
    kubectl apply -f api-service.yaml
+
    kubectl apply -f web-deployment.yaml
+
    kubectl apply -f web-service.yaml
