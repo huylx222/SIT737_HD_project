@@ -34,3 +34,8 @@
    kubectl apply -f web-deployment.yaml
 
    kubectl apply -f web-service.yaml
+
+
+10. Create monitoring dashboard
+
+    gcloud monitoring dashboards create --config-from-file=gke-dashboard.json
